@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 void main() {
-  runApp(WorkoutTimerApp());
+  runApp(const WorkoutTimerApp());
 }
 
 class WorkoutTimerApp extends StatelessWidget {
+  const WorkoutTimerApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,12 +15,14 @@ class WorkoutTimerApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: WorkoutTimerHomePage(),
+      home: const WorkoutTimerHomePage(),
     );
   }
 }
 
 class WorkoutTimerHomePage extends StatefulWidget {
+  const WorkoutTimerHomePage({super.key});
+
   @override
   _WorkoutTimerHomePageState createState() => _WorkoutTimerHomePageState();
 }
@@ -41,8 +45,8 @@ class _WorkoutTimerHomePageState extends State<WorkoutTimerHomePage> {
       return setState(() {
         _alertError = true;
         _errorMessa = "Provice a valid Time";
-        var timer = Timer(
-            Duration(seconds: 1),
+        Timer(
+            const Duration(seconds: 1),
             () => setState(() {
                   _alertError = false;
                   _errorMessa = "";
@@ -55,7 +59,7 @@ class _WorkoutTimerHomePageState extends State<WorkoutTimerHomePage> {
     });
 
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_timeLeft! > 0 && !_isPaused) {
           _timeLeft = _timeLeft! - 1;
@@ -92,92 +96,110 @@ class _WorkoutTimerHomePageState extends State<WorkoutTimerHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Workout Timer'),
+        title: const Text('Workout Timer'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_alertError)
-              Card(
-                elevation: BorderSide.strokeAlignCenter,
-                color: Colors.red,  
-                child: Text(_errorMessa),
-              ),
-            if (!_isPaused)
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: TextField(
-                      controller: _controllerTotalTime,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Total workout time (minutes)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: TextField(
-                      controller: _controllerBreakTime,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Break time (minutes)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _totalTime = int.tryParse(_controllerTotalTime.text);
-                  _breakTime = int.tryParse(_controllerBreakTime.text);
-                  if (_totalTime != null &&
-                      _breakTime != null &&
-                      _breakTime! > 0) {
-                    _intervals = totalTimeCalc(_totalTime!, _breakTime!);
-                    _remainSeries = _totalTime! ~/ _breakTime!;
-                  }
-                  _isPaused = false;
-                  _startTimer();
-                });
-              },
-              child: Text('Start Timer'),
-            ),
-            SizedBox(height: 16),
-            Row(
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                if (!_isPaused)
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: TextField(
+                          controller: _controllerTotalTime,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Total workout time (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: TextField(
+                          controller: _controllerBreakTime,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Break time (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _isPaused ? _resumeTimer : _pauseTimer,
-                  child: Text(_isPaused ? 'Resume Timer' : 'Pause Timer'),
+                  onPressed: () {
+                    setState(() {
+                      _totalTime = int.tryParse(_controllerTotalTime.text);
+                      _isPaused = false;
+                      _startTimer();
+                    });
+                  },
+                  child: const Text('Start Timer'),
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _isPaused ? _resumeTimer : _pauseTimer,
+                      child: Text(_isPaused ? 'Resume Timer' : 'Pause Timer'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                if (_timeLeft != null)
+                  Text(
+                    'Time Left: ${(_timeLeft! ~/ 60).toString().padLeft(2, '0')}:${(_timeLeft! % 60).toString().padLeft(2, '0')}',
+                    style: const TextStyle(fontSize: 48),
+                  ),
+                if (_intervals != null)
+                  Text(
+                    'Intervals: $_intervals',
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                if (_remainSeries != null)
+                  Text(
+                    'Remaining Series: $_remainSeries',
+                    style: const TextStyle(fontSize: 24),
+                  ),
               ],
             ),
-            SizedBox(height: 32),
-            if (_timeLeft != null)
-              Text(
-                'Time Left: ${(_timeLeft! ~/ 60).toString().padLeft(2, '0')}:${(_timeLeft! % 60).toString().padLeft(2, '0')}',
-                style: TextStyle(fontSize: 48),
-              ),
-            if (_intervals != null)
-              Text(
-                'Intervals: $_intervals',
-                style: TextStyle(fontSize: 24),
-              ),
-            if (_remainSeries != null)
-              Text(
-                'Remaining Series: $_remainSeries',
-                style: TextStyle(fontSize: 24),
-              ),
-          ],
-        ),
+          ),
+          if (_alertError)
+            const Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: 100),
+                  child: Center(
+                    child: Card(
+                      elevation: 4, // Adiciona uma sombra ao card
+                      child: Padding(
+                        padding:  EdgeInsets.all(16.0),
+                        child: Text(
+                          'Provide a value Time!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontFamily: 'RobotoMono',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+        ],
       ),
     );
   }
